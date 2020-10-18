@@ -29,14 +29,33 @@ function start() {
         choices: ["Add a department", "Add a role", "Add an employee", "View a department", "View a role", "View an employee", "Update an employee role"]
     }).then(function (answer) {
         // based on their answer, either corresponding query function
-        if (answer.queryAction === "Add a role") {
+        if (answer.queryAction === "Add a department") {
+            addDept();
+        } else if (answer.queryAction === "Add a role") {
             addRole();
         }
-        // else {
-        //     bidAuction();
-        // }
     });
 };
+
+function addDept() {
+    inquirer.prompt(
+        {
+            name: "name",
+            type: "input",
+            message: "What department would you like to add?"
+        }
+    ).then(function (newDept) {
+        console.log(newDept);
+        connection.query("INSERT INTO department SET ?",
+            {
+                name: newDept.name
+            },
+            function (err) {
+                if (err) throw err;
+                console.log("New department added successfully!");
+            })
+    })
+}
 
 function addRole() {
     connection.query("SELECT * FROM department", function (err, results) {
