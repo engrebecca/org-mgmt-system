@@ -1,0 +1,25 @@
+{
+  "name": "org-mgmt-system",
+  "version": "1.0.0",
+  "description": "",
+  "main": "orgMgmtSys.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/engrebecca/org-mgmt-system.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/engrebecca/org-mgmt-system/issues"
+  },
+  "homepage": "https://github.com/engrebecca/org-mgmt-system#readme",
+  "dependencies": {
+    "console.table": "^0.10.0",
+    "inquirer": "^7.3.3",
+    "mysql": "^2.18.1"
+  }
+}
