@@ -33,9 +33,11 @@ function start() {
             addDept();
         } else if (answer.queryAction === "Add a role") {
             addRole();
+        } else if (answer.queryAction === "Add an employee") {
+            addEmployee();
         }
-    });
-};
+    })
+}
 
 function addDept() {
     inquirer.prompt(
@@ -45,7 +47,6 @@ function addDept() {
             message: "What department would you like to add?"
         }
     ).then(function (newDept) {
-        console.log(newDept);
         connection.query("INSERT INTO department SET ?",
             {
                 name: newDept.name
@@ -84,13 +85,11 @@ function addRole() {
                 }
             }
         ]).then(function (newRole) {
-            console.log(newRole);
             for (let i = 0; i < results.length; i++) {
                 if (results[i].name === newRole.name) {
                     newRole.department_id = results[i].id;
                 }
             }
-            console.log(newRole);
             connection.query("INSERT INTO role SET ?",
                 {
                     title: newRole.title,
@@ -105,9 +104,80 @@ function addRole() {
     })
 }
 
-                // connection.query(
-                //     "SELECT title, salary, name FROM department INNER JOIN role ON department.id = role.department_id ", function (err, results) {
-                //         if (err) throw err;
-                //         console.log(results);
-                //     }
-                // )
+function addEmployee() {
+    connection.query(
+        "SELECT employee.first_name, employee.last_name, role.title, CONCAT(person.first_name,' ', person.last_name) as manager FROM employee RIGHT JOIN role ON employee.role_id = role.id LEFT JOIN employee as person on employee.manager_id = person.id", function (err, results) {
+            if (err) throw err;
+            inquirer.prompt([
+                {
+                    name: "first_name",
+                    type: "input",
+                    message: "What is the employee's first name?"
+                },
+                {
+                    name: "last_name",
+                    type: "input",
+                    message: "What is the employee's last name?"
+                },
+                {
+                    name: "title",
+                    type: "list",
+                    message: "What is the employee's title?",
+                    choices: function () {
+                        let titleArr = [];
+                        for (let i = 0; i < results.length; i++) {
+                            if (titleArr.indexOf(results[i].title) == -1) {
+                                titleArr.push(results[i].title);
+                            }
+                        }
+                        return titleArr;
+                    }
+                },
+                {
+                    name: "manager",
+                    type: "list",
+                    message: "What is their manager?",
+                    choices: function () {
+                        let managerArr = [];
+                        // let managerNameArr = ["This is the manager array"];
+                        for (let i = 0; i < results.length; i++) {
+                            if (results[i].manager !== null && managerArr.indexOf(results[i].manager) == -1) {
+                                managerArr.push(results[i].manager);
+                            }
+                        }
+                        return managerArr;
+                    }
+                }
+            ]).then(function (newEmployee) {
+                connection.query("SELECT * FROM employee", function (err, results) {
+                    for (let i = 0; i < results.length; i++) {
+                        if (`${results[i].first_name} ${results[i].last_name}` === newEmployee.manager) {
+                            newEmployee.manager_id = results[i].id;
+                        }
+                    }
+                    connection.query("SELECT * FROM role", function (err, results) {
+                        for (let i = 0; i < results.length; i++) {
+                            if (results[i].title === newEmployee.title) {
+                                newEmployee.role_id = results[i].id;
+                                connection.query("INSERT INTO employee SET ?",
+                                    {
+                                        first_name: newEmployee.first_name,
+                                        last_name: newEmployee.last_name,
+                                        role_id: newEmployee.role_id,
+                                        manager_id: newEmployee.manager_id
+                                    },
+                                    function (err) {
+                                        if (err) throw err;
+                                        console.log("New employee added successfully!");
+                                    })
+                            }
+                        }
+                    })
+                })
+            })
+        }
+    )
+}
+
+// How to select manager names from employee.manager_id
+// SELECT employee.first_name, employee.last_name, role.title, CONCAT(person.first_name,' ', person.last_name) as manager FROM employee INNER JOIN role ON employee.role_id = role.id INNER JOIN employee as person on employee.manager_id = person.id;
