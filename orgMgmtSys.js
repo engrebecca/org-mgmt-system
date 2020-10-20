@@ -1,5 +1,6 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
+const cTable = require("console.table");
 
 // Create connection information for the sql database
 const connection = mysql.createConnection({
@@ -26,7 +27,7 @@ function start() {
         name: "queryAction",
         type: "list",
         message: "What would you like to do?",
-        choices: ["Add a department", "Add a role", "Add an employee", "View a department", "View a role", "View an employee", "Update an employee role"]
+        choices: ["Add a department", "Add a role", "Add an employee", "View departments", "View roles", "View employees", "Update an employee role"]
     }).then(function (answer) {
         // based on their answer, either corresponding query function
         if (answer.queryAction === "Add a department") {
@@ -35,6 +36,12 @@ function start() {
             addRole();
         } else if (answer.queryAction === "Add an employee") {
             addEmployee();
+        } else if (answer.queryAction === "View departments") {
+            viewDept();
+        } else if (answer.queryAction === "View roles") {
+            viewRoles();
+        } else if (answer.queryAction === "View employees") {
+            viewEmployees();
         }
     })
 }
@@ -54,6 +61,7 @@ function addDept() {
             function (err) {
                 if (err) throw err;
                 console.log("New department added successfully!");
+                start();
             })
     })
 }
@@ -99,6 +107,7 @@ function addRole() {
                 function (err) {
                     if (err) throw err;
                     console.log("New role added successfully!");
+                    start();
                 })
         })
     })
@@ -169,6 +178,7 @@ function addEmployee() {
                                     function (err) {
                                         if (err) throw err;
                                         console.log("New employee added successfully!");
+                                        start();
                                     })
                             }
                         }
@@ -179,5 +189,28 @@ function addEmployee() {
     )
 }
 
+function viewDept() {
+    connection.query("SELECT * FROM department", function (err, res) {
+        if (err) throw err;
+        console.table(res);
+        start();
+    })
+}
+
+function viewRoles() {
+    connection.query("SELECT title, salary, name FROM role INNER JOIN department WHERE role.department_id = department.id", function (err, res) {
+        if (err) throw err;
+        console.table(res);
+        start();
+    })
+}
+
+function viewEmployees() {
+    connection.query("SELECT employee.first_name, employee.last_name, role.title, CONCAT(person.first_name,' ', person.last_name) as manager FROM employee INNER JOIN role ON employee.role_id = role.id LEFT JOIN employee as person on employee.manager_id = person.id", function (err, res) {
+        if (err) throw err;
+        console.table(res);
+        start();
+    })
+}
 // How to select manager names from employee.manager_id
 // SELECT employee.first_name, employee.last_name, role.title, CONCAT(person.first_name,' ', person.last_name) as manager FROM employee INNER JOIN role ON employee.role_id = role.id INNER JOIN employee as person on employee.manager_id = person.id;
