@@ -42,6 +42,8 @@ function start() {
             viewRoles();
         } else if (answer.queryAction === "View employees") {
             viewEmployees();
+        } else if (answer.queryAction === "Update an employee role") {
+            updateEmployeeRole();
         }
     })
 }
@@ -145,10 +147,9 @@ function addEmployee() {
                 {
                     name: "manager",
                     type: "list",
-                    message: "What is their manager?",
+                    message: "Who is their manager?",
                     choices: function () {
                         let managerArr = [];
-                        // let managerNameArr = ["This is the manager array"];
                         for (let i = 0; i < results.length; i++) {
                             if (results[i].manager !== null && managerArr.indexOf(results[i].manager) == -1) {
                                 managerArr.push(results[i].manager);
@@ -212,5 +213,74 @@ function viewEmployees() {
         start();
     })
 }
-// How to select manager names from employee.manager_id
-// SELECT employee.first_name, employee.last_name, role.title, CONCAT(person.first_name,' ', person.last_name) as manager FROM employee INNER JOIN role ON employee.role_id = role.id INNER JOIN employee as person on employee.manager_id = person.id;
+
+function updateEmployeeRole() {
+    connection.query(
+        "SELECT employee.first_name, employee.last_name, role.title, CONCAT(person.first_name,' ', person.last_name) as manager FROM employee RIGHT JOIN role ON employee.role_id = role.id LEFT JOIN employee as person on employee.manager_id = person.id", function (err, results) {
+            if (err) throw err;
+            inquirer.prompt([
+                {
+                    name: "fullName",
+                    type: "list",
+                    message: "Which employee would you like to update a role for?",
+                    choices: function () {
+                        let employeeArr = [];
+                        for (let i = 0; i < results.length; i++) {
+                            if (results[i].first_name !== null && results[i].last_name !== null) {
+                                let employeeName = `${results[i].first_name} ${results[i].last_name}`;
+                                if (employeeArr.indexOf(employeeName) == -1) {
+                                    employeeArr.push(employeeName);
+                                }
+                            }
+                        }
+                        return employeeArr;
+                    }
+                },
+                {
+                    name: "title",
+                    type: "list",
+                    message: "What is their new role?",
+                    choices: function () {
+                        let roleArr = [];
+                        for (let i = 0; i < results.length; i++) {
+                            if (roleArr.indexOf(results[i].title) == -1) {
+                                roleArr.push(results[i].title);
+                            }
+                        }
+                        return roleArr;
+                    }
+                }
+            ]).then(function (employee) {
+                console.log(employee);
+                employee.first_name = employee.fullName.split(" ")[0];
+                employee.last_name = employee.fullName.split(" ")[1];
+                console.log(employee);
+                connection.query("SELECT * FROM role", function (err, results) {
+                    for (let i = 0; i < results.length; i++) {
+                        if (results[i].title === employee.title) {
+                            employee.role_id = results[i].id;
+                            console.log(employee);
+                            connection.query("UPDATE employee SET ? WHERE ? AND ?",
+                                [
+                                    {
+                                        role_id: employee.role_id
+                                    },
+                                    {
+                                        first_name: employee.first_name
+                                    },
+                                    {
+                                        last_name: employee.last_name
+                                    }
+                                ], function (err, results) {
+                                    if (err) throw err;
+                                    console.log("Employee role updated successfully!");
+                                    start();
+                                })
+
+                        }
+                    }
+                })
+            })
+        }
+    )
+}
