@@ -116,78 +116,76 @@ function addRole() {
 }
 
 function addEmployee() {
-    connection.query(
-        "SELECT employee.first_name, employee.last_name, role.title, CONCAT(person.first_name,' ', person.last_name) as manager FROM employee RIGHT JOIN role ON employee.role_id = role.id LEFT JOIN employee as person on employee.manager_id = person.id", function (err, results) {
-            if (err) throw err;
-            inquirer.prompt([
-                {
-                    name: "first_name",
-                    type: "input",
-                    message: "What is the employee's first name?"
-                },
-                {
-                    name: "last_name",
-                    type: "input",
-                    message: "What is the employee's last name?"
-                },
-                {
-                    name: "title",
-                    type: "list",
-                    message: "What is the employee's title?",
-                    choices: function () {
-                        let titleArr = [];
-                        for (let i = 0; i < results.length; i++) {
-                            if (titleArr.indexOf(results[i].title) == -1) {
-                                titleArr.push(results[i].title);
-                            }
+    connection.query("SELECT employee.first_name, employee.last_name, role.title, CONCAT(person.first_name,' ', person.last_name) as manager FROM employee RIGHT JOIN role ON employee.role_id = role.id LEFT JOIN employee as person on employee.manager_id = person.id", function (err, results) {
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                name: "first_name",
+                type: "input",
+                message: "What is the employee's first name?"
+            },
+            {
+                name: "last_name",
+                type: "input",
+                message: "What is the employee's last name?"
+            },
+            {
+                name: "title",
+                type: "list",
+                message: "What is the employee's title?",
+                choices: function () {
+                    let titleArr = [];
+                    for (let i = 0; i < results.length; i++) {
+                        if (titleArr.indexOf(results[i].title) == -1) {
+                            titleArr.push(results[i].title);
                         }
-                        return titleArr;
                     }
-                },
-                {
-                    name: "manager",
-                    type: "list",
-                    message: "Who is their manager?",
-                    choices: function () {
-                        let managerArr = [];
-                        for (let i = 0; i < results.length; i++) {
-                            if (results[i].manager !== null && managerArr.indexOf(results[i].manager) == -1) {
-                                managerArr.push(results[i].manager);
-                            }
+                    return titleArr;
+                }
+            },
+            {
+                name: "manager",
+                type: "list",
+                message: "Who is their manager?",
+                choices: function () {
+                    let managerArr = [];
+                    for (let i = 0; i < results.length; i++) {
+                        if (results[i].manager !== null && managerArr.indexOf(results[i].manager) == -1) {
+                            managerArr.push(results[i].manager);
                         }
-                        return managerArr;
+                    }
+                    return managerArr;
+                }
+            }
+        ]).then(function (newEmployee) {
+            connection.query("SELECT * FROM employee", function (err, results) {
+                for (let i = 0; i < results.length; i++) {
+                    if (`${results[i].first_name} ${results[i].last_name}` === newEmployee.manager) {
+                        newEmployee.manager_id = results[i].id;
                     }
                 }
-            ]).then(function (newEmployee) {
-                connection.query("SELECT * FROM employee", function (err, results) {
+                connection.query("SELECT * FROM role", function (err, results) {
                     for (let i = 0; i < results.length; i++) {
-                        if (`${results[i].first_name} ${results[i].last_name}` === newEmployee.manager) {
-                            newEmployee.manager_id = results[i].id;
+                        if (results[i].title === newEmployee.title) {
+                            newEmployee.role_id = results[i].id;
+                            connection.query("INSERT INTO employee SET ?",
+                                {
+                                    first_name: newEmployee.first_name,
+                                    last_name: newEmployee.last_name,
+                                    role_id: newEmployee.role_id,
+                                    manager_id: newEmployee.manager_id
+                                },
+                                function (err) {
+                                    if (err) throw err;
+                                    console.log("New employee added successfully!");
+                                    start();
+                                })
                         }
                     }
-                    connection.query("SELECT * FROM role", function (err, results) {
-                        for (let i = 0; i < results.length; i++) {
-                            if (results[i].title === newEmployee.title) {
-                                newEmployee.role_id = results[i].id;
-                                connection.query("INSERT INTO employee SET ?",
-                                    {
-                                        first_name: newEmployee.first_name,
-                                        last_name: newEmployee.last_name,
-                                        role_id: newEmployee.role_id,
-                                        manager_id: newEmployee.manager_id
-                                    },
-                                    function (err) {
-                                        if (err) throw err;
-                                        console.log("New employee added successfully!");
-                                        start();
-                                    })
-                            }
-                        }
-                    })
                 })
             })
-        }
-    )
+        })
+    })
 }
 
 function viewDept() {
@@ -215,72 +213,67 @@ function viewEmployees() {
 }
 
 function updateEmployeeRole() {
-    connection.query(
-        "SELECT employee.first_name, employee.last_name, role.title, CONCAT(person.first_name,' ', person.last_name) as manager FROM employee RIGHT JOIN role ON employee.role_id = role.id LEFT JOIN employee as person on employee.manager_id = person.id", function (err, results) {
-            if (err) throw err;
-            inquirer.prompt([
-                {
-                    name: "fullName",
-                    type: "list",
-                    message: "Which employee would you like to update a role for?",
-                    choices: function () {
-                        let employeeArr = [];
-                        for (let i = 0; i < results.length; i++) {
-                            if (results[i].first_name !== null && results[i].last_name !== null) {
-                                let employeeName = `${results[i].first_name} ${results[i].last_name}`;
-                                if (employeeArr.indexOf(employeeName) == -1) {
-                                    employeeArr.push(employeeName);
-                                }
+    connection.query("SELECT employee.first_name, employee.last_name, role.title, CONCAT(person.first_name,' ', person.last_name) as manager FROM employee RIGHT JOIN role ON employee.role_id = role.id LEFT JOIN employee as person on employee.manager_id = person.id", function (err, results) {
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                name: "fullName",
+                type: "list",
+                message: "Which employee would you like to update a role for?",
+                choices: function () {
+                    let employeeArr = [];
+                    for (let i = 0; i < results.length; i++) {
+                        if (results[i].first_name !== null && results[i].last_name !== null) {
+                            let employeeName = `${results[i].first_name} ${results[i].last_name}`;
+                            if (employeeArr.indexOf(employeeName) == -1) {
+                                employeeArr.push(employeeName);
                             }
                         }
-                        return employeeArr;
                     }
-                },
-                {
-                    name: "title",
-                    type: "list",
-                    message: "What is their new role?",
-                    choices: function () {
-                        let roleArr = [];
-                        for (let i = 0; i < results.length; i++) {
-                            if (roleArr.indexOf(results[i].title) == -1) {
-                                roleArr.push(results[i].title);
-                            }
+                    return employeeArr;
+                }
+            },
+            {
+                name: "title",
+                type: "list",
+                message: "What is their new role?",
+                choices: function () {
+                    let roleArr = [];
+                    for (let i = 0; i < results.length; i++) {
+                        if (roleArr.indexOf(results[i].title) == -1) {
+                            roleArr.push(results[i].title);
                         }
-                        return roleArr;
+                    }
+                    return roleArr;
+                }
+            }
+        ]).then(function (employee) {
+            employee.first_name = employee.fullName.split(" ")[0];
+            employee.last_name = employee.fullName.split(" ")[1];
+            connection.query("SELECT * FROM role", function (err, results) {
+                for (let i = 0; i < results.length; i++) {
+                    if (results[i].title === employee.title) {
+                        employee.role_id = results[i].id;
+                        connection.query("UPDATE employee SET ? WHERE ? AND ?",
+                            [
+                                {
+                                    role_id: employee.role_id
+                                },
+                                {
+                                    first_name: employee.first_name
+                                },
+                                {
+                                    last_name: employee.last_name
+                                }
+                            ], function (err, results) {
+                                if (err) throw err;
+                                console.log("Employee role updated successfully!");
+                                start();
+                            })
+
                     }
                 }
-            ]).then(function (employee) {
-                console.log(employee);
-                employee.first_name = employee.fullName.split(" ")[0];
-                employee.last_name = employee.fullName.split(" ")[1];
-                console.log(employee);
-                connection.query("SELECT * FROM role", function (err, results) {
-                    for (let i = 0; i < results.length; i++) {
-                        if (results[i].title === employee.title) {
-                            employee.role_id = results[i].id;
-                            console.log(employee);
-                            connection.query("UPDATE employee SET ? WHERE ? AND ?",
-                                [
-                                    {
-                                        role_id: employee.role_id
-                                    },
-                                    {
-                                        first_name: employee.first_name
-                                    },
-                                    {
-                                        last_name: employee.last_name
-                                    }
-                                ], function (err, results) {
-                                    if (err) throw err;
-                                    console.log("Employee role updated successfully!");
-                                    start();
-                                })
-
-                        }
-                    }
-                })
             })
-        }
-    )
+        })
+    })
 }
