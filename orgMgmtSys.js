@@ -27,7 +27,7 @@ function start() {
         name: "queryAction",
         type: "list",
         message: "What would you like to do?",
-        choices: ["Add a department", "Add a role", "Add an employee", "View departments", "View roles", "View employees", "Update an employee role"]
+        choices: ["Add a department", "Add a role", "Add an employee", "View departments", "View roles", "View employees", "Update an employee role", "Exit"]
     }).then(function (answer) {
         // based on their answer, either corresponding query function
         if (answer.queryAction === "Add a department") {
@@ -44,6 +44,8 @@ function start() {
             viewEmployees();
         } else if (answer.queryAction === "Update an employee role") {
             updateEmployeeRole();
+        } else {
+            connection.end();
         }
     })
 }
