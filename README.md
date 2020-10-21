@@ -8,10 +8,11 @@ Organization Management System is a command line interface that allows business 
 
 ## Usage
 1. Install necessary dependencies through the command "npm install"
-2. Initiate the program with the command "node orgMgmtSys.js"
-3. Select an option from the Inquirer menu to add, view, or update specifc data
-4. Continue to cycle through the option menu until all updates are complete
-5. Exit the program 
+2. Run schema.sql and seed.sql files in MySQL to create the database and tables
+3. Initiate the program in command line with the command "node orgMgmtSys.js"
+4. Select an option from the Inquirer menu to add, view, or update specifc data
+5. Continue to cycle through the option menu until all updates are complete
+6. Exit the program 
 
 ## Features
 * The MySQL NPM package is used to connect to a MySQL database and perform queries
