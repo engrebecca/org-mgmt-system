@@ -66,7 +66,8 @@ function addDept() {
                 if (err) throw err;
                 console.log("New department added successfully!");
                 start();
-            })
+            }
+        )
     })
 }
 
@@ -112,7 +113,8 @@ function addRole() {
                     if (err) throw err;
                     console.log("New role added successfully!");
                     start();
-                })
+                }
+            )
         })
     })
 }
@@ -181,7 +183,8 @@ function addEmployee() {
                                     if (err) throw err;
                                     console.log("New employee added successfully!");
                                     start();
-                                })
+                                }
+                            )
                         }
                     }
                 })
@@ -191,7 +194,7 @@ function addEmployee() {
 }
 
 function viewDept() {
-    connection.query("SELECT * FROM department", function (err, res) {
+    connection.query("SELECT name AS department FROM department ORDER BY department ASC", function (err, res) {
         if (err) throw err;
         console.table(res);
         start();
@@ -199,7 +202,7 @@ function viewDept() {
 }
 
 function viewRoles() {
-    connection.query("SELECT title, salary, name FROM role INNER JOIN department WHERE role.department_id = department.id", function (err, res) {
+    connection.query("SELECT title, salary, name AS department FROM role INNER JOIN department WHERE role.department_id = department.id ORDER BY department ASC", function (err, res) {
         if (err) throw err;
         console.table(res);
         start();
@@ -207,7 +210,7 @@ function viewRoles() {
 }
 
 function viewEmployees() {
-    connection.query("SELECT employee.first_name, employee.last_name, role.title, CONCAT(person.first_name,' ', person.last_name) as manager FROM employee INNER JOIN role ON employee.role_id = role.id LEFT JOIN employee as person on employee.manager_id = person.id", function (err, res) {
+    connection.query("SELECT employee.first_name, employee.last_name, role.title, CONCAT(person.first_name,' ', person.last_name) as manager FROM employee INNER JOIN role ON employee.role_id = role.id LEFT JOIN employee as person on employee.manager_id = person.id ORDER BY role.title ASC", function (err, res) {
         if (err) throw err;
         console.table(res);
         start();
@@ -271,7 +274,8 @@ function updateEmployeeRole() {
                                 if (err) throw err;
                                 console.log("Employee role updated successfully!");
                                 start();
-                            })
+                            }
+                        )
 
                     }
                 }
